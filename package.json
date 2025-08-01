@@ -9,6 +9,9 @@
     "preview": "vite preview",
     "start": "vite build & node server.cjs"
   },
+  "engines":{
+    "node": ">=22.0.0"
+  },
   "devDependencies": {
     "sass": "^1.89.2",
     "vite": "^6.1.0"
