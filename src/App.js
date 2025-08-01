@@ -225,8 +225,4 @@ export default class App {
             })
         })
     }
-
-
-
-
 }
