@@ -28,6 +28,7 @@
    ```
 
 ## Netlify
-Настроен автодеплой на ресурсе Netlify: [Netlify]https://scintillating-lamington-ac8ea7.netlify.app
+Настроен автодеплой на ресурсе Netlify:
+[Netlify](https://scintillating-lamington-ac8ea7.netlify.app)
 
 Netlify Deploy Status: [![Netlify Status](https://api.netlify.com/api/v1/badges/67a4ab37-6f6e-4bc3-b617-027187af389b/deploy-status)](https://app.netlify.com/projects/scintillating-lamington-ac8ea7/deploys)
