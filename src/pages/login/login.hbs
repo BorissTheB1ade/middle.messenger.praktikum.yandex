@@ -1,0 +1,22 @@
+<header>
+    {{> Header }}
+</header>
+<main class="page">
+    <h1>{{loginFormTitle}}</h1>
+    <form class="form">
+        {{#each loginFormFields}} 
+        <div class="form-item">
+            <label>
+                {{label}}
+            </label>
+            <input class="form-item_input" name="{{name}}" placeholder="{{placeholder}}"/>
+        </div>
+        {{/each}}
+        <div>
+            {{>SubmitBtn text='Войти'}}
+        </div>
+    </form>
+    <div>
+        {{>Link class='header-link' href='register' text='Зарегистрироваться'}}
+    </div>
+</main>

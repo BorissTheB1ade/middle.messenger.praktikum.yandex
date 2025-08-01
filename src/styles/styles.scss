@@ -1,0 +1,102 @@
+@use './fonts/fonts.scss';
+@use './header/header.scss';
+@use './mixins/mixins' as *;
+@use './variables/variables.scss';
+
+
+
+#app {
+    font-family: variables.$default-font-family;
+}
+
+.page {
+    width: 100%;
+    height: 90vh;
+    @include flex-layout(column, center, center);
+}
+
+.user-settings-container {
+    @include flex-layout(row, center, center);
+    gap: 3rem;
+    margin-bottom: variables.$margin-bottom-default
+}
+
+.user-settings_submit-btn-container {
+    @include flex-layout(row, center, center);
+}
+
+.error-container {
+    @include flex-layout(column, center, center);
+}
+
+.error-code {
+    @include text(128px, variables.$primary-color, 500)
+}
+
+.error-message {
+    @include text(48px, variables.$primary-color, 500);
+    width: 380px;
+    text-align: center;
+    margin-bottom: variables.$margin-bottom-default
+}
+
+.form {
+    @include flex-layout(column);
+    gap: 15px
+}
+
+.form-item {
+    @include flex-layout(column);
+    gap: 10px
+}
+
+.form-item_input {
+    @include input();
+    box-sizing: border-box
+}
+
+.form-title {
+    @include text(32px, variables.$primary-color, 600)
+}
+
+.submit-btn {
+    @include button();
+    margin-bottom: 16px
+}
+
+.avatar-circle {
+    @include avatar-circle();
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    @include flex-layout(row, center, center)
+}
+
+.avatar-preview {
+    @include full-parent();
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.avatar-input {
+    display: none;
+}
+
+.chat-container {
+    @include flex-layout(row, flex-start);
+    @include full-parent();
+}
+
+.chat-list-container {
+    width: 25%;
+    height: 100%;
+    background-color: variables.$secondary-color;
+    @include flex-layout(row, center, center);
+}
+
+.chat-area-container {
+    width: 75%;
+    height: 100%;
+    background-color: variables.$triatry-color;
+    @include flex-layout(row, center, center);
+}

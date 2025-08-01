@@ -1,0 +1,17 @@
+@use '../mixins/mixins.scss' as *;
+@use '../variables/variables.scss';
+
+.header-link_container{
+    height: 40px;
+}
+
+.header-link_list{
+    @include flex-layout();
+    gap: 2rem;
+    list-style: none;
+}
+
+.header-link{
+    text-decoration: none;
+    color: variables.$link-color-blue
+}
