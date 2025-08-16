@@ -1,0 +1,33 @@
+<header>
+    {{> Header }}
+</header>
+<main class="page">
+    <h1>{{userSettingsFormTitle}}</h1>
+    <form>
+        <div class="user-settings-container">
+            <div class="form">
+                {{#each userSettingsFormFields}}
+                <div class="form-item">
+                    <label>
+                        {{label}}
+                    </label>
+                    <input class="form-item_input" name="{{name}}" value="{{value}}" />
+                </div>
+                {{/each}}
+            </div>
+            <div class="avatar-circle">
+                <input class="avatar-input" type="file" accept="image/*" id="avatar-upload">
+                <label for="avatar-upload" class="avatar-label">
+                    <img id="avatar-preview" class="avatar-preview" type="image/svg+xml" src="/icons/account_circle.svg"
+                        alt="avatar">
+                </label>
+            </div>
+        </div>
+        <div class="user-settings_submit-btn-container">
+            {{>SubmitBtn text='Сохранить изменения'}}
+        </div>
+    </form>
+    <div>
+        {{>Link class='header-link' href='login' text='Вход'}}
+    </div>
+</main>
