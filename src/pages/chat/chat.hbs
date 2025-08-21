@@ -1,14 +1,15 @@
-
-<header>
-    {{>Header}}
-</header>
-<main class="page">
-    <div class="chat-container">
-        <div class="chat-list-container">
-            *Список чатов*
+<div class="chat-container">
+    <div class="chat-list-container">
+        <div class="go-to-profile">
+            <span>{{goToProfileText}}</span>
+            <img alt="goToProfileIcon" src="icons/caret_right.svg"/>
         </div>
-        <div class="chat-area-container">
-            *Сообщения и их отправка*
-        </div>
+        {{{chatSearch}}}
+        {{{chatList}}}
     </div>
-</main>
+    <div class="chat-area-container">
+        {{{chatHeader}}}
+        {{{messageArea}}}
+        {{{messageInput}}}
+    </div>
+</div>
