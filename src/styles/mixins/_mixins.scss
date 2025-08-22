@@ -1,4 +1,4 @@
-@use '../variables/variables.scss' as *;
+@use '../variables/variables.scss' as variables;
 
 @mixin flex-layout($direction: row, $justify: center, $align: flex-start) {
   display: flex;
@@ -16,7 +16,7 @@
 @mixin input($width: 485px, $height: 40px, $border-radius: 8px) {
   width: $width;
   height: $height;
-  border: 1px solid $secondary-color;
+  border: 1px solid variables.$secondary-color;
   border-radius: $border-radius;
 }
 
