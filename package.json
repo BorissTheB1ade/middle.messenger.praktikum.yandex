@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint:eslint": "node_modules/.bin/eslint .",
     "lint:stylelint": "npx stylelint **/*.scss",
-    "typecheck": "npx tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "npm run typecheck && npm run lint:eslint && npm run lint:stylelint",
     "preview": "vite preview",
     "start": "vite build & node server.cjs"
@@ -27,7 +27,7 @@
     "stylelint": "^16.23.1",
     "stylelint-config-standard-scss": "^15.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "4.8.4",
+    "typescript": "5.9.2",
     "vite": "^6.1.0"
   },
   "dependencies": {
