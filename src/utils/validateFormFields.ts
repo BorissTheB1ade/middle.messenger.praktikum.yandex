@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 type ValidationPatternItem = {
-    regex: RegExp,
-    label: string,
-    rules: string
+  regex: RegExp,
+  label: string,
+  rules: string
 }
 
 const validationPatterns: Record<string, ValidationPatternItem> = {
@@ -36,12 +36,12 @@ const validationPatterns: Record<string, ValidationPatternItem> = {
   login: {
     regex: /^(?=.*[a-zA-Z])[a-zA-Z0-9\\-_]{3,20}$/,
     label: 'Логин',
-    rules: 'от 3 до 20 символов, латиница, может содержать цифры, но не состоять из них, без пробелов, без спецсимволов (допустимы дефис и нижнее подчёркивание)',
+    rules: 'От 3 до 20 символов, латиница, может содержать цифры, но не состоять из них, без пробелов, без спецсимволов (допустимы дефис и нижнее подчёркивание)',
   },
   phone: {
     regex: /^(\+[0-9]{9,14}|[0-9]{10,15})$/,
     label: 'Телефон',
-    rules: 'От 10 до 15 символов, состоит из цифр, может начинается с плюса.',
+    rules: 'От 10 до 15 символов, состоит из цифр, может начинаться с плюса.',
   },
   email: {
     regex: /^[a-zA-Z0-9._-]+@[a-zA-Z]+\.[a-zA-Z]+$/,
@@ -54,25 +54,68 @@ const validationPatterns: Record<string, ValidationPatternItem> = {
     rules: 'Не должно быть пустым',
   },
 };
+
+function showError(input: HTMLInputElement, message: string): void {
+  const errorElement = document.createElement('div');
+  errorElement.className = 'error-message';
+  errorElement.style.width = '485px';
+  errorElement.style.color = 'red';
+  errorElement.style.fontSize = '10px';
+  errorElement.style.marginTop = '4px';
+  errorElement.textContent = message;
+
+  errorElement.classList.add('input-error');
+
+  input.parentNode?.insertBefore(errorElement, input.nextSibling);
+
+  input.classList.add('input-error-field');
+}
+
+function clearErrorMessages(form: HTMLFormElement): void {
+  const errorMessages = form.querySelectorAll('.error-message');
+  errorMessages.forEach((error) => error.remove());
+
+  const errorInputs = form.querySelectorAll('.input-error-field');
+  errorInputs.forEach((input) => input.classList.remove('input-error-field'));
+}
+
+function clearErrorMessage(input: HTMLInputElement): void {
+  const errorElement = input.nextElementSibling;
+  if (errorElement && errorElement.classList.contains('error-message')) {
+    errorElement.remove();
+  }
+  input.classList.remove('input-error-field');
+}
+
 export default function validateFormFields(target: EventTarget | null): void {
+  let isValid = true;
+
   if (target instanceof HTMLFormElement) {
     const formData = new FormData(target);
     const formDataObject = Object.fromEntries(formData.entries());
+    clearErrorMessages(target);
 
     Object.entries(formDataObject).forEach(([key, value]) => {
-      if (key !== 'avatar' && key !== 'display_name') {
-        if (!validationPatterns[key].regex.test(String(value))) {
-          throw new Error(`Ошибка валидации. Проверьте поле "${validationPatterns[key].label}" на соответствие правилам: "${validationPatterns[key].rules}"`);
+      if (key !== 'avatar' && key !== 'display_name' && key !== 'message') {
+        const input = target.elements.namedItem(key) as HTMLInputElement;
+        if (input && !validationPatterns[key]?.regex.test(String(value))) {
+          showError(input, validationPatterns[key].rules);
+          isValid = false;
         }
       }
     });
-    console.log('Валидация пройдена. Данные: ');
-    console.log(formDataObject);
+
+    if (isValid) {
+      console.log('Валидация пройдена. Данные: ');
+      console.log(formDataObject);
+    }
   } else if (target instanceof HTMLInputElement) {
-    if (!validationPatterns[target.name].regex.test(target.value)) {
-      throw new Error(`Ошибка валидации. Проверьте поле "${validationPatterns[target.name].label}" на соответствие правилам: "${validationPatterns[target.name].rules}"`);
-    } else {
-      console.log(`Валидация поля пройдена. Данные: ${target.name}: ${target.value}`);
+    clearErrorMessage(target);
+    if (target.name !== 'avatar' && target.name !== 'display_name' && target.name !== 'message') {
+      if (!validationPatterns[target.name].regex.test(target.value)) {
+        showError(target, validationPatterns[target.name].rules);
+        isValid = false;
+      }
     }
   }
 }
