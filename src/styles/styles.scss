@@ -1,7 +1,7 @@
-@use './fonts/fonts.scss';
+@use './fonts/fonts.scss' as *;
 @use './header/header.scss';
-@use './mixins/mixins' as *;
-@use './variables/variables.scss';
+@use './mixins/mixins.scss' as *;
+@use './variables/variables.scss' as variables;
 
 
 
@@ -12,11 +12,13 @@
 .page {
     width: 100%;
     height: 90vh;
+
     @include flex-layout(column, center, center);
 }
 
 .user-settings-container {
     @include flex-layout(row, center, center);
+
     gap: 3rem;
     margin-bottom: variables.$margin-bottom-default
 }
@@ -35,6 +37,7 @@
 
 .error-message {
     @include text(48px, variables.$primary-color, 500);
+
     width: 380px;
     text-align: center;
     margin-bottom: variables.$margin-bottom-default
@@ -42,16 +45,19 @@
 
 .form {
     @include flex-layout(column);
+
     gap: 15px
 }
 
 .form-item {
     @include flex-layout(column);
+
     gap: 10px
 }
 
 .form-item_input {
-    @include input();
+    @include input;
+
     box-sizing: border-box
 }
 
@@ -60,20 +66,25 @@
 }
 
 .submit-btn {
-    @include button();
-    margin-bottom: 16px
+    @include button;
+
+    margin: 15px 0;
+    cursor: pointer
 }
 
 .avatar-circle {
-    @include avatar-circle();
+    @include avatar-circle;
+
     position: relative;
     cursor: pointer;
     overflow: hidden;
+
     @include flex-layout(row, center, center)
 }
 
 .avatar-preview {
-    @include full-parent();
+    @include full-parent;
+
     object-fit: cover;
     cursor: pointer;
 }
@@ -84,19 +95,212 @@
 
 .chat-container {
     @include flex-layout(row, flex-start);
-    @include full-parent();
+    @include full-parent;
 }
 
 .chat-list-container {
     width: 25%;
     height: 100%;
-    background-color: variables.$secondary-color;
+    border-right: 2px solid variables.$secondary-color;
+
+    @include flex-layout(column, flex-start, center);
+}
+
+.chat-list {
+    width: 100%;
+}
+
+.chat-list-item {
+    width: 100%;
+    height: 88px;
+    gap: 10px;
+
+    @include flex-layout(row, flex-start, center);
+}
+
+.avatar-stub {
+    border-radius: 50%;
+    height: 64px;
+    width: 64px
+}
+
+.go-to-profile {
+    width: 90%;
+    font-size: 14px;
+    margin-bottom: variables.$margin-bottom-default;
+    gap: 3px;
+    color: variables.$triatry-color;
+
+    @include flex-layout(row, flex-end, center)
+}
+
+.search-chat-input-wrapper {
+    position: relative;
+    width: 95%;
+    margin-bottom: variables.$margin-bottom-default;
+
     @include flex-layout(row, center, center);
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        background-image: url('icons/search.svg');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        z-index: 2;
+        pointer-events: none;
+    }
+}
+
+.message-input-wrapper {
+    position: relative;
+    margin-left: 3%;
+    width: 95%;
+
+    @include flex-layout(row, center, center);
+}
+
+.message-input {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    padding-right: 40px;
+    padding-left: 10px;
+    box-sizing: border-box;
+}
+
+.message-submit-btn{
+    height: 30px;
+    width: 40px;
+    box-shadow: none;
+    background: transparent;
+    position: absolute;
+    border: none;
+    cursor: pointer;
+    left: 94%;
+    bottom: 5%;
+    z-index: 10;
+}
+
+.search-chat-input {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    padding-left: 40px;
+    box-sizing: border-box;
 }
 
 .chat-area-container {
     width: 75%;
     height: 100%;
-    background-color: variables.$triatry-color;
+
+    @include flex-layout(column, flex-start, flex-start);
+}
+
+.chat-header-wrapper {
+    width: 100%;
+    height: 80px;
+    box-sizing: border-box;
+    border-bottom: 1px solid variables.$secondary-color;
+    padding: 0 10px;
+
+    @include flex-layout(row, space-between, center);
+}
+
+.chat-header-profile-wrapper {
+    gap: 10px;
+
     @include flex-layout(row, center, center);
+}
+
+.chat-list-item_props {
+    width: calc(100% - 94px);
+
+    @include flex-layout(column, flex-start, flex-start);
+}
+
+.chat-list-item_displayed-name {
+    font-size: 20px
+}
+
+.chat-list-item_last-message-text {
+    font-size: 16px;
+    width: 100%;
+    color: variables.$triatry-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
+
+.message-area {
+    width: 100%;
+    height: 90%;
+    box-sizing: border-box;
+    padding: 10px
+}
+
+.message {
+    max-width: 70%;
+    padding: 12px 16px;
+    margin: 4px 0;
+    border-radius: 18px;
+    position: relative;
+    width:fit-content;
+    word-wrap: break-word;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
+
+    &::before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        bottom: 0;
+        border: 6px solid transparent;
+    }
+}
+
+.incoming {
+    align-self: flex-start;
+    background-color: variables.$secondary-color;
+    border-bottom-left-radius: 4px;
+
+    &::before {
+        left: -6px;
+        border-right-color: variables.$secondary-color;
+        border-left: none;
+    }
+}
+
+.outgoing {
+    align-self: flex-end;
+    background-color: #d1e7ff;
+    border-bottom-right-radius: 4px;
+
+    &::before {
+        right: -6px;
+        border-left-color: #d1e7ff;
+        border-right: none;
+    }
+}
+
+.message-string-outgoing {
+    width: 100%;
+    box-sizing: border-box;
+
+    @include flex-layout(row, flex-end, center)
+}
+
+.message-string-incomig {
+    width: 100%;
+    box-sizing: border-box;
+
+    @include flex-layout(row, flex-start, center)
 }

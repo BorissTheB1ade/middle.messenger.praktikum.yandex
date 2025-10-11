@@ -1,0 +1,68 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "extends": [
+    "airbnb",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".ts"
+        ],
+        "moduleDirectory": [
+          "node_modules",
+          "src/"
+        ]
+      },
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
+    }
+  },
+  "rules": {
+    "max-len": [2, 200],
+    "@typescript-eslint/no-base-to-string": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/restrict-template-expressions": "off",
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": [
+          "_element",
+          "_createDocumentElement",
+          "_props",
+          "_id",
+          "_eventBus"
+        ],
+        "allowAfterThis": true,
+        "allowAfterSuper": true,
+        "allowAfterThisConstructor": true,
+        "enforceInMethodNames": false
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "ts": "never"
+      }
+    ]
+  }
+}
