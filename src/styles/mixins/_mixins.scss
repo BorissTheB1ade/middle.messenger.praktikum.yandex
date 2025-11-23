@@ -1,7 +1,7 @@
 @use '../variables/variables.scss' as variables;
 
 @mixin flex-layout($direction: row, $justify: center, $align: flex-start) {
-  display: flex;
+  display: flex !important;
   flex-direction: $direction;
   justify-content: $justify;
   align-items: $align;

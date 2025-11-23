@@ -1,3 +1,9 @@
 <div class="message {{messageType}}">
-    {{messageText}}
+    <div class="message-content">{{messageText}}</div>
+    <div class="message-meta">
+        <span class="message-time">{{messageTime}}</span>
+        {{#if userName}}
+            <span class="message-user">{{userName}}</span>
+        {{/if}}
+    </div>
 </div>
