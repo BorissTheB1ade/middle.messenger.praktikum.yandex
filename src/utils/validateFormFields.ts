@@ -1,4 +1,8 @@
 /* eslint-disable no-console */
+import { authController } from "./Controllers/AuthController";
+import { userController } from "./Controllers/UserController";
+import { webSocketService } from "../services/Websocket";
+
 type ValidationPatternItem = {
   regex: RegExp,
   label: string,
@@ -87,7 +91,7 @@ function clearErrorMessage(input: HTMLInputElement): void {
   input.classList.remove('input-error-field');
 }
 
-export default function validateFormFields(target: EventTarget | null): void {
+export default async function validateFormFields(target: EventTarget | null): Promise<void> {
   let isValid = true;
 
   if (target instanceof HTMLFormElement) {
@@ -106,8 +110,63 @@ export default function validateFormFields(target: EventTarget | null): void {
     });
 
     if (isValid) {
-      console.log('Валидация пройдена. Данные: ');
-      console.log(formDataObject);
+      try {
+        if (target.id === 'register_form') {
+          await authController.signup({
+            first_name: formDataObject.first_name as string,
+            second_name: formDataObject.second_name as string,
+            login: formDataObject.login as string,
+            email: formDataObject.email as string,
+            password: formDataObject.password as string,
+            phone: formDataObject.phone as string
+          });
+        }
+        else if (target.id === 'login_form') {
+          await authController.signin({
+            login: formDataObject.login as string,
+            password: formDataObject.password as string,
+          });
+        }
+        else if (target.id === 'user-settings-form') {
+          const profileData = {
+            first_name: formData.get('first_name') as string,
+            second_name: formData.get('second_name') as string,
+            display_name: formData.get('display_name') as string,
+            login: formData.get('login') as string,
+            email: formData.get('email') as string,
+            phone: formData.get('phone') as string,
+          };
+          const avatarFile = formData.get('avatar') as File;
+          if (avatarFile && avatarFile.size > 0 && avatarFile.name) {
+            await userController.updateProfile(profileData, avatarFile);
+          } else {
+            await userController.updateProfile(profileData);
+          }
+        }
+        else if (target.id === 'change-password-form') {
+          const passwordData = {
+            oldPassword: formDataObject.oldPassword as string,
+            newPassword: formDataObject.newPassword as string,
+          };
+
+          await userController.changePassword(passwordData);
+        }
+        else if (target.id === 'message-send-form') {
+          const message = formDataObject.message as string;
+          if (message && message.trim()) {
+            webSocketService.sendMessage(message.trim());
+            target.reset();
+          } else {
+            const input = target.elements.namedItem('message') as HTMLInputElement;
+            if (input) {
+              showError(input, 'Сообщение не может быть пустым');
+            }
+            isValid = false;
+          }
+        }
+      } catch (error) {
+        console.error('Form submission failed:', error);
+      }
     }
   } else if (target instanceof HTMLInputElement) {
     clearErrorMessage(target);

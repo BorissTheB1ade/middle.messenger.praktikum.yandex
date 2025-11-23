@@ -3,7 +3,7 @@ import { EventHandler, EventHandlerWithOptions } from 'types/common';
 import EventBus from './EventBus';
 import generateRandomString from '../utils/generateRandomString';
 
-type BlockProps = {
+export type BlockProps = {
   events?: Record<string, EventHandler | EventHandlerWithOptions>;
   attributes?: Record<string, string>;
   [key: string]: unknown;
@@ -62,8 +62,7 @@ export default class Block {
 
   // eslint-disable-next-line class-methods-use-this
   _createDocumentElement(tagName: string): HTMLElement {
-    const el = document.createElement(tagName);
-    return el;
+    return document.createElement(tagName);
   }
 
   init(): void {
@@ -86,8 +85,12 @@ export default class Block {
     }
   }
 
+  forceRender(): void {
+    this._eventBus.emit(Block.EVENTS.FLOW_RENDER);
+  }
+
   render(): DocumentFragment {
-    return this.compile('<div id="appTETET"></div>', {});
+    return this.compile('<div></div>', {});
   }
 
   addEvents(): void {
