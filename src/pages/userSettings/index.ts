@@ -21,6 +21,7 @@ interface User {
 }
 
 export default class UserSettingsPage extends Block {
+  //@ts-ignore
   private subscribe?: () => void;
 
   constructor() {
