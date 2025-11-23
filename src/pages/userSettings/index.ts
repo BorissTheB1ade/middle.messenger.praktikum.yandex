@@ -21,7 +21,7 @@ interface User {
 }
 
 export default class UserSettingsPage extends Block {
-  // @ts-expect-error
+  // @ts-expect-error - подписка на стор
   private subscribe?: () => void;
 
   constructor() {
