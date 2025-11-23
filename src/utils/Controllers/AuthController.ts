@@ -1,99 +1,118 @@
-import { authAPI, SignUpRequest, SignInRequest, User } from '../API/AuthAPI';
-import store  from '../../services/Store';
-import { router } from '../../router';
+import {
+  authAPI, SignUpRequest, SignInRequest, User,
+} from '../API/AuthAPI';
+import store from '../../services/Store';
+import router from '../../router';
 
-export class AuthController {
-  async signup(signUpRequest: SignUpRequest): Promise<boolean> {
+interface APIError {
+  reason?: string;
+}
+
+interface APIResponse {
+  response: string;
+  status: number;
+}
+
+class AuthController {
+  static async signup(signUpRequest: SignUpRequest): Promise<boolean> {
     try {
       store.setState({ isLoading: true, error: null });
 
-      const response = await authAPI.signup(signUpRequest);
+      const response = await authAPI.signup(signUpRequest) as APIResponse;
 
       if (response.status === 200) {
-        await this.getUser();
+        await AuthController.getUser();
         store.setState({ isLoading: false, error: null });
-        router.go('/messenger')
+        router.go('/messenger');
         return true;
-      } else {
-        const errorData = JSON.parse(response.response);
-        throw new Error(errorData.reason || `Ошибка регистрации: ${response.status}`);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const errorData = JSON.parse(response.response) as APIError;
+      const errorMessage = errorData.reason || `Ошибка регистрации: ${response.status}`;
+      throw new Error(errorMessage);
     } catch (error) {
       store.setState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Ошибка регистрации'
+        error: error instanceof Error ? error.message : 'Ошибка регистрации',
       });
       return false;
     }
   }
 
-  async signin(signInRequest: SignInRequest): Promise<boolean> {
+  static async signin(signInRequest: SignInRequest): Promise<boolean> {
     try {
       store.setState({ isLoading: true, error: null });
 
-      const response = await authAPI.signin(signInRequest);
+      const response = await authAPI.signin(signInRequest) as APIResponse;
 
       if (response.status === 200) {
-        await this.getUser();
+        await AuthController.getUser();
         store.setState({ isLoading: false, error: null });
-        router.go('/messenger')
+        router.go('/messenger');
         return true;
-      } else {
-        const errorData = JSON.parse(response.response);
-        throw new Error(errorData.reason || `Ошибка авторизации: ${response.status}`);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const errorData = JSON.parse(response.response) as APIError;
+      const errorMessage = errorData.reason || `Ошибка авторизации: ${response.status}`;
+      throw new Error(errorMessage);
     } catch (error) {
       store.setState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Ошибка авторизации'
+        error: error instanceof Error ? error.message : 'Ошибка авторизации',
       });
       return false;
     }
   }
 
-  async getUser(): Promise<User | null> {
+  static async getUser(): Promise<User | null> {
     try {
-      const response = await authAPI.getUser();
+      const response = await authAPI.getUser() as APIResponse;
 
       if (response.status === 200) {
-        const user = JSON.parse(response.response);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const user = JSON.parse(response.response) as User;
         store.setState({ user, isAuth: true, error: null });
         return user;
-      } else {
-        store.setState({ isAuth: false, user: null });
-        return null;
       }
+      store.setState({ isAuth: false, user: null });
+      return null;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       store.setState({ isAuth: false, user: null });
       return null;
     }
   }
 
-  async logout(): Promise<boolean> {
+  static async logout(): Promise<boolean> {
     try {
-      const response = await authAPI.logout();
+      const response = await authAPI.logout() as APIResponse;
 
       if (response.status === 200) {
         store.reset();
         router.go('/');
         return true;
-      } else {
-        throw new Error(`Logout failed: ${response.status}`);
       }
+      throw new Error(`Logout failed: ${response.status}`);
     } catch (error) {
+      AuthController.handleError('Logout error:', error);
       return false;
     }
   }
 
-  async checkAuth(): Promise<boolean> {
+  static async checkAuth(): Promise<boolean> {
     try {
-      const user = await this.getUser();
+      const user = await AuthController.getUser();
       return !!user;
     } catch (error) {
+      AuthController.handleError('Check auth error:', error);
       return false;
     }
   }
 
+  private static handleError(message: string, error: unknown): void {
+    // eslint-disable-next-line no-console
+    console.error(message, error);
+  }
 }
 
-export const authController = new AuthController();
+export default AuthController;

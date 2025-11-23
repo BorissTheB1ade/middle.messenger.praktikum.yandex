@@ -1,16 +1,20 @@
 import { EventHandler, EventHandlerWithOptions } from '../types/common';
 import validateFormFields from '../utils/validateFormFields';
-import { router } from '../router';
+import router from '../router';
 
 export const formEvents: Record<string, EventHandler | EventHandlerWithOptions> = {
   blur: {
-    handler: (event: Event) => { validateFormFields(event.target); },
+    handler: (event: Event) => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      validateFormFields(event.target);
+    },
     extraEventProps: { capture: true },
   },
   submit: {
     handler: (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       validateFormFields(event.target);
     },
   },
@@ -28,4 +32,4 @@ export const linkEvents: unknown = {
       }
     },
   },
-}
+};

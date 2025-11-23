@@ -13,38 +13,37 @@ interface ChatHeaderProps {
 }
 
 export default class ChatHeader extends Block {
-  constructor(tagName: string = 'div', props: ChatHeaderProps) {
-
+  constructor(props: ChatHeaderProps, tagName: string = 'div') {
     const chatMenu = new ChatMenu('div', {
       attributes: { class: 'chat-menu hidden' },
       onAddUser: props.onAddUser,
       onRemoveUser: props.onRemoveUser,
-      onRemoveChat: props.onRemoveChat
+      onRemoveChat: props.onRemoveChat,
     });
 
     super(tagName, {
       ...props,
-      chatMenu: chatMenu,
+      chatMenu,
       events: {
         click: (event: Event) => {
           const target = event.target as HTMLElement;
-          const settingsIcon = target.closest('.chat-header-settings') ||
-            target.closest('img[alt="chat_settings"]');
+          const settingsIcon = target.closest('.chat-header-settings')
+            || target.closest('img[alt="chat_settings"]');
 
           if (settingsIcon) {
             event.stopPropagation();
             const isCurrentlyOpen = !chatMenu.getContent().classList.contains('hidden');
             chatMenu.setProps({
-              attributes: { class: `chat-menu ${isCurrentlyOpen ? 'hidden' : 'open'}` }
+              attributes: { class: `chat-menu ${isCurrentlyOpen ? 'hidden' : 'open'}` },
             });
           }
           if (!target.closest('.chat-menu') && !target.closest('.chat-header-settings')) {
             chatMenu.setProps({
-              attributes: { class: 'chat-menu hidden' }
+              attributes: { class: 'chat-menu hidden' },
             });
           }
-        }
-      }
+        },
+      },
     });
   }
 

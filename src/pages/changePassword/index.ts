@@ -1,13 +1,13 @@
 import template from './changePassword.hbs?raw';
 import Block from '../../services/Block';
 import store from '../../services/Store';
-import { authController } from '../../utils/Controllers/AuthController';
-import { formEvents, linkEvents } from "../../services/Events";
-import Form from "../../components/form";
-import FormItem from "../../components/formItem";
-import Input from "../../components/input";
-import SubmitButton from "../../components/button";
-import Link from "../../components/link";
+import AuthController from '../../utils/Controllers/AuthController';
+import { formEvents, linkEvents } from '../../services/Events';
+import Form from '../../components/form';
+import FormItem from '../../components/formItem';
+import Input from '../../components/input';
+import SubmitButton from '../../components/button';
+import Link from '../../components/link';
 
 export default class ChangePasswordPage extends Block {
   constructor() {
@@ -35,14 +35,17 @@ export default class ChangePasswordPage extends Block {
         ],
       }),
       submitButton: new SubmitButton('div', { text: 'Сохранить изменения', form: 'change-password-form', class: 'submit-btn' }),
-      link: new Link('div', { url: '/', text: 'К профилю', events: linkEvents, attributes: { 'data-url': '/settings' } }),
+      link: new Link('div', {
+        url: '/', text: 'К профилю', events: linkEvents, attributes: { 'data-url': '/settings' },
+      }),
     });
   }
-  
+
   componentDidMount() {
     const currentUser = store.getState().user;
     if (!currentUser) {
-      authController.getUser();
+      AuthController.getUser().catch(() => {
+      });
     }
   }
 

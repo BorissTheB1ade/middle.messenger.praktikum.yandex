@@ -1,10 +1,10 @@
 import template from './chat.hbs?raw';
 import Block from '../../services/Block';
 import store from '../../services/Store';
-import { chatController } from '../../utils/Controllers/ChatController';
+import ChatController from '../../utils/Controllers/ChatController';
 import Link from '../../components/link';
 import Button from '../../components/simpleButton';
-import { authController } from '../../utils/Controllers/AuthController';
+import AuthController from '../../utils/Controllers/AuthController';
 import ChatList from '../../components/chatList';
 import ChatHeader from '../../components/chatHeader';
 import MessageInput from '../../components/messageInput';
@@ -13,13 +13,14 @@ import SubmitButton from '../../components/button';
 import ChatListItem from '../../components/chatListItem';
 import Message from '../../components/message';
 import { formEvents, linkEvents } from '../../services/Events';
-import { webSocketService } from '../../services/Websocket';
+import { webSocketService, WebSocketData } from '../../services/Websocket';
 import { MessageType } from '../../types/chat';
 import UserDropdown from '../../components/userDropdown';
 import UserSearch from '../../components/userSearch';
 
 export default class ChatPage extends Block {
   private subscribe?: () => void;
+
   private messages: MessageType[] = [];
 
   constructor() {
@@ -28,49 +29,57 @@ export default class ChatPage extends Block {
       class: 'btn',
       events: {
         click: {
-          handler: () => {
+          handler: async () => {
+            // eslint-disable-next-line no-alert
             const title = prompt('Введите название чата:');
             if (title) {
-              chatController.createChat(title);
+              await ChatController.createChat(title);
             }
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     super('div', {
       attributes: { class: 'page' },
-      goToProfileLink: new Link('div', { url: '/', text: 'Профиль', events: linkEvents, attributes: { 'data-url': '/settings' } }),
+      goToProfileLink: new Link('div', {
+        url: '/', text: 'Профиль', events: linkEvents, attributes: { 'data-url': '/settings' },
+      }),
       logoutButton: new Button('div', {
         text: 'Выйти',
         class: 'btn',
         events: {
           click: {
             handler: () => {
-              authController.logout();
-            }
-          }
-        }
+              AuthController.logout().catch(() => {
+                // Обработка ошибки выхода
+              });
+            },
+          },
+        },
       }),
-      chatHeader: new ChatHeader('div', {
+      chatHeader: new ChatHeader({
         attributes: { class: 'chat-header-wrapper' },
         displayName: 'Выберите чат',
         lastOnline: '',
         iconName: 'red_circle.svg',
         onAddUser: () => {
+          // eslint-disable-next-line no-alert
           alert('Сначала выберите чат');
         },
         onRemoveUser: () => {
+          // eslint-disable-next-line no-alert
           alert('Сначала выберите чат');
         },
         onRemoveChat: () => {
+          // eslint-disable-next-line no-alert
           alert('Сначала выберите чат');
-        }
-      }),
+        },
+      }, 'div'),
       chatList: new ChatList('div', {
         attributes: { class: 'chat-list' },
         chatListItems: [],
-        createChatButton: createChatButton
+        createChatButton,
       }),
       messageArea: new MessageArea('div', {
         attributes: { class: 'message-area' },
@@ -91,7 +100,7 @@ export default class ChatPage extends Block {
       const state = store.getState();
 
       if (state.chats) {
-        const chatListItems = state.chats.map(chat => {
+        const chatListItems = state.chats.map((chat) => {
           const isSelected = state.currentChat?.id === chat.id;
 
           return new ChatListItem('div', {
@@ -102,11 +111,11 @@ export default class ChatPage extends Block {
             unreadCount: chat.unread_count,
             events: {
               click: {
-                handler: () => {
-                  chatController.selectChat(chat);
-                }
-              }
-            }
+                handler: async () => {
+                  await ChatController.selectChat(chat);
+                },
+              },
+            },
           });
         });
 
@@ -114,10 +123,10 @@ export default class ChatPage extends Block {
           this.setProps({
             chatList: new ChatList('div', {
               attributes: { class: 'chat-list' },
-              chatListItems: chatListItems,
-              createChatButton: createChatButton
+              chatListItems,
+              createChatButton,
             }),
-            chatHeader: new ChatHeader('div', {
+            chatHeader: new ChatHeader({
               attributes: { class: 'chat-header-wrapper' },
               displayName: state.currentChat.title,
               lastOnline: 'Online',
@@ -129,54 +138,62 @@ export default class ChatPage extends Block {
               },
               onRemoveUser: () => {
                 if (state.currentChat) {
-                  this.showRemoveUserDropdown(state.currentChat.id);
+                  this.showRemoveUserDropdown(state.currentChat.id).catch(() => {
+                    // Обработка ошибки
+                  });
                 }
               },
               onRemoveChat: () => {
                 if (state.currentChat) {
-                  this.handleDeleteChat(state.currentChat.id);
+                  this.handleDeleteChat(state.currentChat.id).catch(() => {
+                    // Обработка ошибки
+                  });
                 }
-              }
-            })
+              },
+            }, 'div'),
           });
         } else {
           this.setProps({
             chatList: new ChatList('div', {
               attributes: { class: 'chat-list' },
-              chatListItems: chatListItems,
-              createChatButton: createChatButton
+              chatListItems,
+              createChatButton,
             }),
-            chatHeader: new ChatHeader('div', {
+            chatHeader: new ChatHeader({
               attributes: { class: 'chat-header-wrapper' },
               displayName: 'Выберите чат',
               lastOnline: '',
               iconName: 'red_circle.svg',
               onAddUser: () => {
+                // eslint-disable-next-line no-alert
                 alert('Сначала выберите чат');
               },
               onRemoveUser: () => {
+                // eslint-disable-next-line no-alert
                 alert('Сначала выберите чат');
               },
               onRemoveChat: () => {
+                // eslint-disable-next-line no-alert
                 alert('Сначала выберите чат');
-              }
-            })
+              },
+            }, 'div'),
           });
         }
       }
     });
 
-    webSocketService.onMessage((data) => {
+    webSocketService.onMessage((data: WebSocketData) => {
       this.handleWebSocketMessage(data);
     });
   }
 
-
-  private async loadChats() {
+  private loadChats() {
     this.messages = [];
     this.updateMessageArea();
-    setTimeout(async () => {
-      await chatController.getChats();
+    setTimeout(() => {
+      ChatController.getChats().catch(() => {
+        // Обработка ошибки загрузки чатов
+      });
     }, 0);
   }
 
@@ -186,27 +203,24 @@ export default class ChatPage extends Block {
     this.hide();
   }
 
-
-  private handleWebSocketMessage(data: any) {
-
+  private handleWebSocketMessage(data: WebSocketData) {
     if (Array.isArray(data)) {
       this.messages = data.reverse();
-    } else if (data.type === 'message') {
-      this.messages = [...this.messages, data];
+    } else if (typeof data === 'object' && data !== null && 'type' in data && data.type === 'message') {
+      this.messages = [...this.messages, data as MessageType];
     }
     this.updateMessageArea();
   }
-
 
   private updateMessageArea() {
     const state = store.getState();
     const currentUser = state.user;
     const currentChatId = state.currentChat?.id;
 
-    const messageItems = this.messages.map(message => {
+    const messageItems = this.messages.map((message) => {
       const messageTime = new Date(message.time).toLocaleTimeString('ru-RU', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       });
 
       let userName = 'Неизвестный';
@@ -215,11 +229,11 @@ export default class ChatPage extends Block {
         userName = 'Вы';
       } else if (currentChatId) {
         const chatUsers = state.chatUsers?.[currentChatId] || [];
-        const messageUser = chatUsers.find(user => user.id === message.user_id);
+        const messageUser = chatUsers.find((user) => user.id === message.user_id);
         if (messageUser) {
-          userName = messageUser.display_name ||
-            `${messageUser.first_name} ${messageUser.second_name}`.trim() ||
-            messageUser.login;
+          userName = messageUser.display_name
+            || `${messageUser.first_name} ${messageUser.second_name}`.trim()
+            || messageUser.login;
         }
       }
 
@@ -227,11 +241,11 @@ export default class ChatPage extends Block {
         attributes: {
           class: message.user_id === currentUser?.id
             ? 'message-string-outgoing'
-            : 'message-string-incoming'
+            : 'message-string-incoming',
         },
         messageText: message.content,
-        messageTime: messageTime,
-        userName: userName,
+        messageTime,
+        userName,
         messageType: message.user_id === currentUser?.id ? 'outgoing' : 'incoming',
       });
     });
@@ -240,32 +254,38 @@ export default class ChatPage extends Block {
       messageArea: new MessageArea('div', {
         attributes: { class: 'message-area' },
         messageList: messageItems,
-      })
+      }),
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private showAddUserModal(chatId: number) {
-    const modal = new UserSearch('div', {
-      chatId: chatId,
+    const modal = new UserSearch({
+      chatId,
       mode: 'add',
       onClose: () => {
         modal.getContent().remove();
-      }
-    });
+      },
+    }, 'div');
 
     document.body.appendChild(modal.getContent());
   }
 
-  private showRemoveUserDropdown(chatId: number) {
-    chatController.getChatUsers(chatId).then(users => {
+  // eslint-disable-next-line class-methods-use-this
+  private async showRemoveUserDropdown(chatId: number) {
+    try {
+      const users = await ChatController.getChatUsers(chatId);
       const dropdown = new UserDropdown({
-        users: users,
+        users,
         title: 'Удалить пользователя',
         onSelectUser: (user) => {
+          // eslint-disable-next-line no-alert, no-restricted-globals
           if (confirm(`Удалить пользователя ${user.login} из чата?`)) {
-            chatController.deleteUserFromChat(chatId, user.id);
+            ChatController.deleteUserFromChat(chatId, user.id).catch(() => {
+              // Обработка ошибки удаления пользователя
+            });
           }
-        }
+        },
       });
       const overlay = document.createElement('div');
       overlay.className = 'dropdown-overlay';
@@ -276,23 +296,27 @@ export default class ChatPage extends Block {
 
       document.body.appendChild(overlay);
       document.body.appendChild(dropdown.getContent());
-    });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load chat users:', error);
+    }
   }
 
-  private handleDeleteChat(chatId: number) {
+  private async handleDeleteChat(chatId: number) {
+    // eslint-disable-next-line no-alert, no-restricted-globals
     if (confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.')) {
-      chatController.deleteChat(chatId)
-        .then(() => {
-          store.setState({
-            currentChat: null,
-          });
-          this.messages = [];
-          this.updateMessageArea();
-          chatController.getChats();
-        })
-        .catch(() => {
-          alert('Не удалось удалить чат');
+      try {
+        await ChatController.deleteChat(chatId);
+        store.setState({
+          currentChat: null,
         });
+        this.messages = [];
+        this.updateMessageArea();
+        await ChatController.getChats();
+      } catch {
+        // eslint-disable-next-line no-alert
+        alert('Не удалось удалить чат');
+      }
     }
   }
 
@@ -305,7 +329,6 @@ export default class ChatPage extends Block {
     this.loadChats();
     super.show();
   }
-
 
   render(): DocumentFragment {
     return this.compile(template, this._props);

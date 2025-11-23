@@ -1,13 +1,24 @@
 import template from './userSettings.hbs?raw';
 import Block from '../../services/Block';
 import store from '../../services/Store';
-import { formEvents, linkEvents } from "../../services/Events";
-import Form from "../../components/form";
-import FormItem from "../../components/formItem";
-import Input from "../../components/input";
-import SubmitButton from "../../components/button";
-import Link from "../../components/link";
-import AvatarInput from "../../components/avatarInput";
+import { formEvents, linkEvents } from '../../services/Events';
+import Form from '../../components/form';
+import FormItem from '../../components/formItem';
+import Input from '../../components/input';
+import SubmitButton from '../../components/button';
+import Link from '../../components/link';
+import AvatarInput from '../../components/avatarInput';
+
+interface User {
+  id?: number;
+  first_name?: string;
+  second_name?: string;
+  login?: string;
+  display_name?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+}
 
 export default class UserSettingsPage extends Block {
   private subscribe?: () => void;
@@ -24,7 +35,7 @@ export default class UserSettingsPage extends Block {
             attributes: { class: 'form-item' },
             label: 'Имя',
             input: new Input('div', {
-              name: 'first_name', placeholder: 'Иван'
+              name: 'first_name', placeholder: 'Иван',
             }),
           }),
           new FormItem('div', {
@@ -94,28 +105,35 @@ export default class UserSettingsPage extends Block {
         form: 'user-settings-form',
         class: 'submit-btn',
       }),
-      link: new Link('div', { url: '/', text: 'К чатам', events: linkEvents, attributes: { 'data-url': '/' } }),
-      link2: new Link('div', { url: '/', text: 'Сменить пароль', events: linkEvents, attributes: { 'data-url': '/changepswd' } }),
+      link: new Link('div', {
+        url: '/', text: 'К чатам', events: linkEvents, attributes: { 'data-url': '/' },
+      }),
+      link2: new Link('div', {
+        url: '/', text: 'Сменить пароль', events: linkEvents, attributes: { 'data-url': '/changepswd' },
+      }),
     });
 
     this.subscribe = store.on('changed', () => {
       const state = store.getState();
       if (state.user && window.location.pathname === '/settings') {
-        setTimeout(() => this.fillFormWithUserData(state.user), 0);
+        setTimeout(() => UserSettingsPage.fillFormWithUserData(state.user), 0);
       }
     });
   }
 
-  fillFormWithUserData(user: any) {
+  private static fillFormWithUserData(user: User | null) {
+    if (!user) return;
+
     const form = document.getElementById('user-settings-form');
-    
+
     if (form) {
-      const fields = ['first_name', 'second_name', 'login', 'display_name', 'email', 'phone'];
-      fields.forEach(field => {
+      const fields = ['first_name', 'second_name', 'login', 'display_name', 'email', 'phone'] as const;
+
+      fields.forEach((field) => {
         const input = form.querySelector(`[name="${field}"]`) as HTMLInputElement;
-        
-        if (input && user[field as keyof typeof user]) {
-          input.value = user[field as keyof typeof user] as string;
+
+        if (input && user[field]) {
+          input.value = user[field];
         }
       });
 
@@ -132,17 +150,17 @@ export default class UserSettingsPage extends Block {
       window.location.href = '/';
       return;
     }
-    setTimeout(() => this.fillFormWithUserData(currentUser), 0);
+    setTimeout(() => UserSettingsPage.fillFormWithUserData(currentUser), 0);
   }
 
   render(): DocumentFragment {
     setTimeout(() => {
-      const user = store.getState().user;
+      const { user } = store.getState();
       if (user) {
-        this.fillFormWithUserData(user);
+        UserSettingsPage.fillFormWithUserData(user);
       }
     }, 0);
-    
+
     return this.compile(template, this._props);
   }
 }

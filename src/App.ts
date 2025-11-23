@@ -1,12 +1,11 @@
-import { router } from './router/index';
+import router from './router/index';
 
 export default class App {
-
   constructor() {
-    this.init();
+    App.init();
   }
 
-  async init() {
+  private static init(): void {
     router.start();
   }
 

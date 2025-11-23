@@ -15,7 +15,7 @@ export default class ChatMenu extends Block {
       ...props,
       attributes: {
         class: `chat-menu ${props.isOpen ? 'open' : 'hidden'}`,
-        ...props.attributes
+        ...props.attributes,
       },
       events: {
         click: (event: Event) => {
@@ -34,8 +34,8 @@ export default class ChatMenu extends Block {
               (this._props.onRemoveChat as () => void)();
             }
           }
-        }
-      }
+        },
+      },
     });
   }
 

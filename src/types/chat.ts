@@ -1,10 +1,21 @@
 export type ChatUser = {
   first_name: string;
   second_name: string;
+  display_name?: string;
   avatar: string;
   email: string;
   login: string;
   phone: string;
+};
+
+export type MessageType = {
+  id: number;
+  user_id: number;
+  chat_id: number;
+  content: string;
+  time: string;
+  type: 'message';
+  is_read: boolean;
 };
 
 export type Chat = {
@@ -20,14 +31,4 @@ export type Chat = {
   };
   token?: string;
   messages?: MessageType[]
-};
-
-export type MessageType = {
-  id: number;
-  user_id: number;
-  chat_id: number;
-  content: string;
-  time: string;
-  type: 'message';
-  is_read: boolean;
 };
