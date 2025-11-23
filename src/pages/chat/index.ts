@@ -19,7 +19,7 @@ import UserDropdown from '../../components/userDropdown';
 import UserSearch from '../../components/userSearch';
 
 export default class ChatPage extends Block {
-  //@ts-ignore
+  // @ts-expect-error
   private subscribe?: () => void;
 
   private messages: MessageType[] = [];
