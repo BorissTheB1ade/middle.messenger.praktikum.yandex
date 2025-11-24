@@ -51,9 +51,17 @@ class AuthController {
         router.go('/messenger');
         return true;
       }
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const errorData = JSON.parse(response.response) as APIError;
       const errorMessage = errorData.reason || `Ошибка авторизации: ${response.status}`;
+
+      if (errorData.reason === 'User already in system') {
+        store.setState({ isLoading: false, error: null });
+        router.go('/messenger');
+        return true;
+      }
+
       throw new Error(errorMessage);
     } catch (error) {
       store.setState({
