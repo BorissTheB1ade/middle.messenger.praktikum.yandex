@@ -16,39 +16,37 @@ interface UserDropdownProps {
 }
 
 export default class UserDropdown extends Block {
-    constructor(props: UserDropdownProps) {
-        const usersHTML = props.users.map(user => 
-            `<div class="user-item" data-user-id="${user.id}">
+  constructor(props: UserDropdownProps) {
+    const usersHTML = props.users.map((user) => `<div class="user-item" data-user-id="${user.id}">
                 <span class="user-login">${user.login}</span>
-            </div>`
-        ).join('');
+            </div>`).join('');
 
-        super('div', {
-            title: props.title,
-            usersHTML: usersHTML,
-            hasUsers: props.users.length > 0,
-            attributes: {
-                class: 'user-dropdown',
-                ...props.attributes
-            },
-            events: {
-                click: (event: Event) => {
-                    const target = event.target as HTMLElement;
-                    const userItem = target.closest('.user-item');
-                    if (userItem && userItem instanceof HTMLElement) {
-                        const userId = parseInt(userItem.dataset.userId!);
-                        const user = props.users.find(u => u.id === userId);
-                        if (user) {
-                            props.onSelectUser(user);
-                            this.getContent().remove();
-                        }
-                    }
-                }
+    super('div', {
+      title: props.title,
+      usersHTML,
+      hasUsers: props.users.length > 0,
+      attributes: {
+        class: 'user-dropdown',
+        ...props.attributes,
+      },
+      events: {
+        click: (event: Event) => {
+          const target = event.target as HTMLElement;
+          const userItem = target.closest('.user-item');
+          if (userItem && userItem instanceof HTMLElement) {
+            const userId = parseInt(userItem.dataset.userId!, 10);
+            const user = props.users.find((u) => u.id === userId);
+            if (user) {
+              props.onSelectUser(user);
+              this.getContent().remove();
             }
-        });
-    }
+          }
+        },
+      },
+    });
+  }
 
-    render(): DocumentFragment {
-        return this.compile(template, this._props);
-    }
+  render(): DocumentFragment {
+    return this.compile(template, this._props);
+  }
 }

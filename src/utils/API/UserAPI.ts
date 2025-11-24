@@ -1,4 +1,4 @@
-import { HTTPTransport } from './HTTPTransport';
+import HTTPTransport from './HTTPTransport';
 
 export interface ChangeProfileRequest extends Record<string, unknown> {
   first_name: string;
@@ -10,7 +10,7 @@ export interface ChangeProfileRequest extends Record<string, unknown> {
 }
 
 export interface ChangePasswordRequest extends Record<string, unknown> {
-  oldPassword: string; 
+  oldPassword: string;
   newPassword: string;
 
 }
@@ -30,13 +30,13 @@ export class UserAPI {
     return this.http.put('/user/password', { data });
   }
 
-  async changeAvatar(data: FormData) { 
+  async changeAvatar(data: FormData) {
     return this.http.put('/user/profile/avatar', { data });
   }
 
   async searchUser(login: string): Promise<XMLHttpRequest> {
-    return this.http.post('/user/search', { 
-      data: { login } 
+    return this.http.post('/user/search', {
+      data: { login },
     });
   }
 }

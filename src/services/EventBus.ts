@@ -20,7 +20,7 @@ export default class EventBus {
 
   off(event: string, callback: Function) {
     if (!this.listeners[event]) {
-      return
+      return;
     }
 
     this.listeners[event] = this.listeners[event].filter(
@@ -30,7 +30,7 @@ export default class EventBus {
 
   emit(event: string, ...args: unknown[]) {
     if (!this.listeners[event]) {
-     return;
+      return;
     }
 
     this.listeners[event].forEach((listener) => {

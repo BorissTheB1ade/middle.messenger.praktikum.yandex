@@ -1,8 +1,8 @@
-import { HTTPTransport } from './HTTPTransport';
+import HTTPTransport from './HTTPTransport';
 
 export interface SignUpRequest extends Record<string, unknown> {
   first_name: string;
-  second_name: string; 
+  second_name: string;
   login: string;
   email: string;
   password: string;

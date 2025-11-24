@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import { authController } from "./Controllers/AuthController";
-import { userController } from "./Controllers/UserController";
-import { webSocketService } from "../services/Websocket";
+import AuthController from './Controllers/AuthController';
+import { UserController } from './Controllers/UserController';
+import { webSocketService } from '../services/Websocket';
 
 type ValidationPatternItem = {
   regex: RegExp,
@@ -112,22 +112,20 @@ export default async function validateFormFields(target: EventTarget | null): Pr
     if (isValid) {
       try {
         if (target.id === 'register_form') {
-          await authController.signup({
+          await AuthController.signup({
             first_name: formDataObject.first_name as string,
             second_name: formDataObject.second_name as string,
             login: formDataObject.login as string,
             email: formDataObject.email as string,
             password: formDataObject.password as string,
-            phone: formDataObject.phone as string
+            phone: formDataObject.phone as string,
           });
-        }
-        else if (target.id === 'login_form') {
-          await authController.signin({
+        } else if (target.id === 'login_form') {
+          await AuthController.signin({
             login: formDataObject.login as string,
             password: formDataObject.password as string,
           });
-        }
-        else if (target.id === 'user-settings-form') {
+        } else if (target.id === 'user-settings-form') {
           const profileData = {
             first_name: formData.get('first_name') as string,
             second_name: formData.get('second_name') as string,
@@ -138,20 +136,18 @@ export default async function validateFormFields(target: EventTarget | null): Pr
           };
           const avatarFile = formData.get('avatar') as File;
           if (avatarFile && avatarFile.size > 0 && avatarFile.name) {
-            await userController.updateProfile(profileData, avatarFile);
+            await UserController.updateProfile(profileData, avatarFile);
           } else {
-            await userController.updateProfile(profileData);
+            await UserController.updateProfile(profileData);
           }
-        }
-        else if (target.id === 'change-password-form') {
+        } else if (target.id === 'change-password-form') {
           const passwordData = {
             oldPassword: formDataObject.oldPassword as string,
             newPassword: formDataObject.newPassword as string,
           };
 
-          await userController.changePassword(passwordData);
-        }
-        else if (target.id === 'message-send-form') {
+          await UserController.changePassword(passwordData);
+        } else if (target.id === 'message-send-form') {
           const message = formDataObject.message as string;
           if (message && message.trim()) {
             webSocketService.sendMessage(message.trim());

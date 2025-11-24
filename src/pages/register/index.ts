@@ -1,11 +1,11 @@
 import template from './register.hbs?raw';
 import Block from '../../services/Block';
-import { formEvents, linkEvents } from "../../services/Events";
-import Form from "../../components/form";
-import FormItem from "../../components/formItem";
-import Input from "../../components/input";
-import SubmitButton from "../../components/button";
-import Link from "../../components/link";
+import { formEvents, linkEvents } from '../../services/Events';
+import Form from '../../components/form';
+import FormItem from '../../components/formItem';
+import Input from '../../components/input';
+import SubmitButton from '../../components/button';
+import Link from '../../components/link';
 
 export default class RegisterPage extends Block {
   constructor() {
@@ -61,7 +61,9 @@ export default class RegisterPage extends Block {
         ],
       }),
       submitButton: new SubmitButton('div', { form: 'register_form', text: 'Зарегистрироваться', class: 'submit-btn' }),
-      link: new Link('div', { url: '/', text: 'Вход', events: linkEvents, attributes: { 'data-url': '/' } }),
+      link: new Link('div', {
+        url: '/', text: 'Вход', events: linkEvents, attributes: { 'data-url': '/' },
+      }),
     });
   }
 

@@ -8,10 +8,9 @@ export type User = {
   login: string;
   email: string;
   phone: string;
-  avatar: string;
-  display_name?: string
+  avatar?: string;
+  display_name?: string;
 };
-
 
 export type AppState = {
   user: User | null;
@@ -30,19 +29,23 @@ const initialState: AppState = {
   currentChat: null,
   error: null,
   isLoading: false,
-  chatUsers: {}
+  chatUsers: {},
 };
 
 class Store extends EventBus {
+  // eslint-disable-next-line no-use-before-define
   private static instance: Store | null = null;
-  private state: AppState = this.loadState();
+
+  private state: AppState = Store.loadState();
+
   id = Math.random();
 
-
-  private loadState(): AppState {
+  private static loadState(): AppState {
     const saved = localStorage.getItem('appState');
     if (saved) {
-      return { ...initialState, ...JSON.parse(saved) };
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const parsedState = JSON.parse(saved) as Partial<AppState>;
+      return { ...initialState, ...parsedState };
     }
     return initialState;
   }
@@ -65,7 +68,7 @@ class Store extends EventBus {
 
     localStorage.setItem('appState', JSON.stringify({
       user: this.state.user,
-      isAuth: this.state.isAuth
+      isAuth: this.state.isAuth,
     }));
 
     this.emit('changed', prevState, this.state);

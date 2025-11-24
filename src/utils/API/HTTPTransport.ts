@@ -18,34 +18,16 @@ interface HTTPOptions {
 
 function queryStringify(data: HTTPData | undefined | null): string {
   if (!data || typeof data !== 'object' || data instanceof FormData) return '';
-  
+
   const entries = Object.entries(data);
   const paramsCount = entries.length;
 
   if (paramsCount === 0) return '';
 
-  return '?' + entries.map(([key, value]) => 
-    `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
-  ).join('&');
+  return `?${entries.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`).join('&')}`;
 }
 
-async function fetchWithRetry(url: string, options: HTTPOptions = {}): Promise<XMLHttpRequest> {
-  const { tries = 1 } = options;
-
-  function onError(err: Error): Promise<XMLHttpRequest> {
-    const triesLeft = tries - 1;
-    if (triesLeft <= 0) {
-      throw err;
-    }
-
-    return fetchWithRetry(url, { ...options, tries: triesLeft });
-  }
-
-  const transport = new HTTPTransport();
-  return transport.request(url, options).catch(onError);
-}
-
-export class HTTPTransport {
+class HTTPTransport {
   private baseURL = 'https://ya-praktikum.tech/api/v2';
 
   private getFullUrl(url: string): string {
@@ -54,86 +36,98 @@ export class HTTPTransport {
 
   private getHeaders(data?: HTTPData): Record<string, string> {
     const headers: Record<string, string> = {};
-    
+
     if (!(data instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
     }
-    
+
     return headers;
   }
 
-  get = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => 
-    fetchWithRetry(url, { ...options, method: HTTPMethods.GET });
+  get = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => this.fetchWithRetry(url, { ...options, method: HTTPMethods.GET });
 
-  put = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => 
-    fetchWithRetry(url, { ...options, method: HTTPMethods.PUT });
+  put = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => this.fetchWithRetry(url, { ...options, method: HTTPMethods.PUT });
 
-  post = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => 
-    fetchWithRetry(url, { ...options, method: HTTPMethods.POST });
+  post = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => this.fetchWithRetry(url, { ...options, method: HTTPMethods.POST });
 
-  delete = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => 
-    fetchWithRetry(url, { ...options, method: HTTPMethods.DELETE });
+  delete = (url: string, options: Omit<HTTPOptions, 'method'> = {}): Promise<XMLHttpRequest> => this.fetchWithRetry(url, { ...options, method: HTTPMethods.DELETE });
 
-  request = (url: string, options: HTTPOptions, timeout: number = 5000): Promise<XMLHttpRequest> => 
-    new Promise((resolve, reject) => {
-      const { method, data, headers = {} } = options;
-      if (!method) {
-        reject(new Error('No method'));
-        return;
+  private async fetchWithRetry(url: string, options: HTTPOptions = {}): Promise<XMLHttpRequest> {
+    const { tries = 1 } = options;
+
+    const onError = (err: Error): Promise<XMLHttpRequest> => {
+      const triesLeft = tries - 1;
+      if (triesLeft <= 0) {
+        throw err;
       }
 
-      const xhr = new XMLHttpRequest();
-      const fullUrl = this.getFullUrl(url);
-      const allHeaders = { ...this.getHeaders(data), ...headers };
-      const newTimeout = options.timeout || timeout;
+      return this.fetchWithRetry(url, { ...options, tries: triesLeft });
+    };
 
-      const timeoutId = setTimeout(() => {
-        xhr.abort();
-        reject(new Error(`Request timeout (${newTimeout}ms)`));
-      }, newTimeout);
+    return this.request(url, options).catch(onError);
+  }
 
-      const isMethodGet = method === HTTPMethods.GET;
-      const requestUrl = isMethodGet ? fullUrl + queryStringify(data) : fullUrl;
+  request = (url: string, options: HTTPOptions, timeout: number = 5000): Promise<XMLHttpRequest> => new Promise((resolve, reject) => {
+    const { method, data, headers = {} } = options;
+    if (!method) {
+      reject(new Error('No method'));
+      return;
+    }
 
-      xhr.open(method, requestUrl);
-      
-      Object.entries(allHeaders).forEach(([key, value]) => {
-        if (value) {
-          xhr.setRequestHeader(key, value);
-        }
-      });
+    const xhr = new XMLHttpRequest();
+    const fullUrl = this.getFullUrl(url);
+    const allHeaders = { ...this.getHeaders(data), ...headers };
+    const newTimeout = options.timeout || timeout;
 
-      xhr.withCredentials = true;
+    const timeoutId = setTimeout(() => {
+      xhr.abort();
+      reject(new Error(`Request timeout (${newTimeout}ms)`));
+    }, newTimeout);
 
-      xhr.onload = () => {
-        clearTimeout(timeoutId);
-        resolve(xhr);
-      };
+    const isMethodGet = method === HTTPMethods.GET;
+    const requestUrl = isMethodGet ? fullUrl + queryStringify(data) : fullUrl;
 
-      xhr.onabort = () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Request aborted'));
-      };
+    xhr.open(method, requestUrl);
 
-      xhr.onerror = () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Network error'));
-      };
-
-      xhr.ontimeout = () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Request timeout'));
-      };
-
-      let body: any = null;
-      if (isMethodGet) {
-        body = null;
-      } else if (data instanceof FormData) {
-        body = data;
-      } else {
-        body = data ? JSON.stringify(data) : null;
+    Object.entries(allHeaders).forEach(([key, value]) => {
+      if (value) {
+        xhr.setRequestHeader(key, value);
       }
-
-      xhr.send(body);
     });
+
+    xhr.withCredentials = true;
+
+    xhr.onload = () => {
+      clearTimeout(timeoutId);
+      resolve(xhr);
+    };
+
+    xhr.onabort = () => {
+      clearTimeout(timeoutId);
+      reject(new Error('Request aborted'));
+    };
+
+    xhr.onerror = () => {
+      clearTimeout(timeoutId);
+      reject(new Error('Network error'));
+    };
+
+    xhr.ontimeout = () => {
+      clearTimeout(timeoutId);
+      reject(new Error('Request timeout'));
+    };
+
+    let body: Document | XMLHttpRequestBodyInit | null = null;
+    if (isMethodGet) {
+      body = null;
+    } else if (data instanceof FormData) {
+      body = data;
+    } else {
+      body = data ? JSON.stringify(data) : null;
+    }
+
+    xhr.send(body);
+  });
 }
+
+export default HTTPTransport;
