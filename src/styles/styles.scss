@@ -13,6 +13,7 @@
     width: 100%;
     height: 90vh;
 
+    // margin-top: 40px;
     @include flex-layout(column, center, center);
 }
 
@@ -204,8 +205,22 @@
 .chat-area-container {
     width: 75%;
     height: 100%;
+    box-sizing: border-box;
 
-    @include flex-layout(column, flex-start, flex-start);
+    @include flex-layout(column, space-between, flex-start);
+}
+
+.message-area-and-header{
+    box-sizing: border-box;
+    width: 100%;
+    height: fit-content;
+    max-height: calc(100% - 180px);
+}
+
+.message-input-area{
+    box-sizing: border-box;
+    height: 40px;
+    width: 100%
 }
 
 .chat-header-wrapper {
@@ -249,9 +264,13 @@
 
 .message-area {
     width: 100%;
-    height: 90%;
     box-sizing: border-box;
-    padding: 10px
+    padding: 10px 10px 0;
+    overflow-y: scroll;
+    max-height: 100%;
+    display:flex;
+    flex-direction: column-reverse;
+    overflow-anchor: auto;
 }
 
 .message {
@@ -435,7 +454,7 @@
     position: fixed;
     inset: 0;
     background: rgb(0 0 0 / 50%);
-    backdrop-filter: blur(4px); // ← БЛЮР ФОНА
+    backdrop-filter: blur(4px);
     z-index: 1000;
     display: flex;
     justify-content: center;
@@ -522,4 +541,11 @@
     justify-self: center;
     cursor: pointer;
 
+}
+
+.load-more-btn{
+    width: 100%;
+    border: 1px dashed lightgrey;
+    color: grey;
+    background-color: transparent;
 }
