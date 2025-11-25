@@ -24,6 +24,18 @@ export default class ChatPage extends Block {
 
   private messages: MessageType[] = [];
 
+  private currentOffset = 0;
+
+  private hasMoreMessages = true;
+
+  private isLoadingOldMessages = false;
+
+  private currentChatId: number | null = null;
+
+  private showTrigger = false;
+
+  private loadMoreButton: Button;
+
   constructor() {
     const createChatButton = new Button('div', {
       text: 'Создать чат',
@@ -41,6 +53,18 @@ export default class ChatPage extends Block {
       },
     });
 
+    const loadMoreButton = new Button('div', {
+      text: 'Загрузить предыдущие сообщения',
+      class: 'btn load-more-btn',
+      events: {
+        click: {
+          handler: () => {
+            this.loadMoreMessages();
+          },
+        },
+      },
+    });
+
     super('div', {
       attributes: { class: 'page' },
       goToProfileLink: new Link('div', {
@@ -52,9 +76,8 @@ export default class ChatPage extends Block {
         events: {
           click: {
             handler: () => {
-              AuthController.logout().catch(() => {
-                // Обработка ошибки выхода
-              });
+              // eslint-disable-next-line no-console
+              AuthController.logout().catch(console.error);
             },
           },
         },
@@ -64,18 +87,12 @@ export default class ChatPage extends Block {
         displayName: 'Выберите чат',
         lastOnline: '',
         iconName: 'red_circle.svg',
-        onAddUser: () => {
-          // eslint-disable-next-line no-alert
-          alert('Сначала выберите чат');
-        },
-        onRemoveUser: () => {
-          // eslint-disable-next-line no-alert
-          alert('Сначала выберите чат');
-        },
-        onRemoveChat: () => {
-          // eslint-disable-next-line no-alert
-          alert('Сначала выберите чат');
-        },
+        // eslint-disable-next-line no-alert
+        onAddUser: () => alert('Сначала выберите чат'),
+        // eslint-disable-next-line no-alert
+        onRemoveUser: () => alert('Сначала выберите чат'),
+        // eslint-disable-next-line no-alert
+        onRemoveChat: () => alert('Сначала выберите чат'),
       }, 'div'),
       chatList: new ChatList('div', {
         attributes: { class: 'chat-list' },
@@ -85,6 +102,8 @@ export default class ChatPage extends Block {
       messageArea: new MessageArea('div', {
         attributes: { class: 'message-area' },
         messageList: [],
+        showTrigger: false,
+        loadMoreButton,
       }),
       messageInput: new MessageInput('form', {
         events: formEvents,
@@ -97,13 +116,14 @@ export default class ChatPage extends Block {
       }),
     });
 
+    this.loadMoreButton = loadMoreButton;
+
     this.subscribe = store.on('changed', () => {
       const state = store.getState();
 
       if (state.chats) {
         const chatListItems = state.chats.map((chat) => {
           const isSelected = state.currentChat?.id === chat.id;
-
           return new ChatListItem('div', {
             attributes: { class: `chat-list-item ${isSelected ? 'selected' : ''}` },
             displayName: chat.title,
@@ -119,6 +139,10 @@ export default class ChatPage extends Block {
             },
           });
         });
+
+        if (state.currentChat && state.currentChat.id !== this.currentChatId) {
+          this.handleChatChange(state.currentChat.id);
+        }
 
         if (state.currentChat) {
           this.setProps({
@@ -139,19 +163,22 @@ export default class ChatPage extends Block {
               },
               onRemoveUser: () => {
                 if (state.currentChat) {
-                  this.showRemoveUserDropdown(state.currentChat.id).catch(() => {
-                    // Обработка ошибки
-                  });
+                  // eslint-disable-next-line no-console
+                  this.showRemoveUserDropdown(state.currentChat.id).catch(console.error);
                 }
               },
               onRemoveChat: () => {
                 if (state.currentChat) {
-                  this.handleDeleteChat(state.currentChat.id).catch(() => {
-                    // Обработка ошибки
-                  });
+                  // eslint-disable-next-line no-console
+                  this.handleDeleteChat(state.currentChat.id).catch(console.error);
                 }
               },
             }, 'div'),
+            messageArea: new MessageArea('div', {
+              attributes: { class: 'message-area' },
+              messageList: this.getMessageItems(),
+              showTrigger: this.showTrigger,
+            }),
           });
         } else {
           this.setProps({
@@ -165,19 +192,18 @@ export default class ChatPage extends Block {
               displayName: 'Выберите чат',
               lastOnline: '',
               iconName: 'red_circle.svg',
-              onAddUser: () => {
-                // eslint-disable-next-line no-alert
-                alert('Сначала выберите чат');
-              },
-              onRemoveUser: () => {
-                // eslint-disable-next-line no-alert
-                alert('Сначала выберите чат');
-              },
-              onRemoveChat: () => {
-                // eslint-disable-next-line no-alert
-                alert('Сначала выберите чат');
-              },
+              // eslint-disable-next-line no-alert
+              onAddUser: () => alert('Сначала выберите чат'),
+              // eslint-disable-next-line no-alert
+              onRemoveUser: () => alert('Сначала выберите чат'),
+              // eslint-disable-next-line no-alert
+              onRemoveChat: () => alert('Сначала выберите чат'),
             }, 'div'),
+            messageArea: new MessageArea('div', {
+              attributes: { class: 'message-area' },
+              messageList: [],
+              showTrigger: false,
+            }),
           });
         }
       }
@@ -188,37 +214,84 @@ export default class ChatPage extends Block {
     });
   }
 
-  private loadChats() {
+  private handleChatChange(newChatId: number) {
     this.messages = [];
+    this.currentOffset = 0;
+    this.hasMoreMessages = true;
+    this.isLoadingOldMessages = false;
+    this.currentChatId = newChatId;
+    this.showTrigger = false;
+  }
+
+  private loadMoreMessages(): boolean {
+    if (this.isLoadingOldMessages || !this.hasMoreMessages) {
+      return false;
+    }
+
+    this.isLoadingOldMessages = true;
+
+    try {
+      const state = store.getState();
+      const currentChatId = state.currentChat?.id;
+      if (!currentChatId) return false;
+      this.currentOffset += 20;
+      webSocketService.getOldMessages(this.currentOffset);
+      return true;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Ошибка подгрузки сообщений:', error);
+      return false;
+    } finally {
+      this.isLoadingOldMessages = false;
+    }
+  }
+
+  private loadChats() {
+    this.resetChatState();
     this.updateMessageArea();
     setTimeout(() => {
-      ChatController.getChats().catch(() => {
-        // Обработка ошибки загрузки чатов
-      });
+      // eslint-disable-next-line no-console
+      ChatController.getChats().catch(console.error);
     }, 0);
   }
 
   public leave() {
-    this.messages = [];
+    this.resetChatState();
     this.updateMessageArea();
     this.hide();
   }
 
   private handleWebSocketMessage(data: WebSocketData) {
     if (Array.isArray(data)) {
-      this.messages = data.reverse();
+      const newMessages = data;
+
+      if (this.currentOffset > 0) {
+        this.messages = [...this.messages, ...newMessages];
+        this.showTrigger = true;
+        if (newMessages.length < 20) {
+          this.hasMoreMessages = false;
+          this.showTrigger = false;
+        }
+      } else {
+        this.messages = newMessages;
+        this.hasMoreMessages = newMessages.length === 20;
+        this.showTrigger = this.hasMoreMessages;
+        this.currentOffset = 0;
+      }
+
+      this.updateMessageArea();
     } else if (typeof data === 'object' && data !== null && 'type' in data && data.type === 'message') {
-      this.messages = [...this.messages, data as MessageType];
+      this.messages = [data as MessageType, ...this.messages];
+      this.updateMessageArea();
     }
-    this.updateMessageArea();
   }
 
-  private updateMessageArea() {
+  private getMessageItems() {
     const state = store.getState();
     const currentUser = state.user;
     const currentChatId = state.currentChat?.id;
 
-    const messageItems = this.messages.map((message) => {
+    return this.messages.map((message) => {
       const messageTime = new Date(message.time).toLocaleTimeString('ru-RU', {
         hour: '2-digit',
         minute: '2-digit',
@@ -243,6 +316,7 @@ export default class ChatPage extends Block {
           class: message.user_id === currentUser?.id
             ? 'message-string-outgoing'
             : 'message-string-incoming',
+          'data-message-id': message.id.toString(),
         },
         messageText: message.content,
         messageTime,
@@ -250,13 +324,26 @@ export default class ChatPage extends Block {
         messageType: message.user_id === currentUser?.id ? 'outgoing' : 'incoming',
       });
     });
+  }
 
+  private updateMessageArea() {
     this.setProps({
       messageArea: new MessageArea('div', {
         attributes: { class: 'message-area' },
-        messageList: messageItems,
+        messageList: this.getMessageItems(),
+        showTrigger: this.showTrigger,
+        loadMoreButton: this.loadMoreButton, // передаем кнопку
       }),
     });
+  }
+
+  private resetChatState() {
+    this.messages = [];
+    this.currentOffset = 0;
+    this.hasMoreMessages = true;
+    this.isLoadingOldMessages = false;
+    this.currentChatId = null;
+    this.showTrigger = false;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -280,11 +367,10 @@ export default class ChatPage extends Block {
         users,
         title: 'Удалить пользователя',
         onSelectUser: (user) => {
-          // eslint-disable-next-line no-alert, no-restricted-globals
+          // eslint-disable-next-line no-restricted-globals
           if (confirm(`Удалить пользователя ${user.login} из чата?`)) {
-            ChatController.deleteUserFromChat(chatId, user.id).catch(() => {
-              // Обработка ошибки удаления пользователя
-            });
+            // eslint-disable-next-line no-console
+            ChatController.deleteUserFromChat(chatId, user.id).catch(console.error);
           }
         },
       });
@@ -304,14 +390,14 @@ export default class ChatPage extends Block {
   }
 
   private async handleDeleteChat(chatId: number) {
-    // eslint-disable-next-line no-alert, no-restricted-globals
+    // eslint-disable-next-line no-restricted-globals
     if (confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.')) {
       try {
         await ChatController.deleteChat(chatId);
         store.setState({
           currentChat: null,
         });
-        this.messages = [];
+        this.resetChatState();
         this.updateMessageArea();
         await ChatController.getChats();
       } catch {
@@ -322,7 +408,7 @@ export default class ChatPage extends Block {
   }
 
   componentDidMount() {
-    this.messages = [];
+    this.resetChatState();
     this.updateMessageArea();
   }
 

@@ -1,31 +1,31 @@
 import store from './Store';
 
 interface WebSocketMessage {
-    id: number;
-    user_id: number;
-    chat_id: number;
-    content: string;
-    time: string;
-    type: 'message';
-    is_read: boolean;
+  id: number;
+  user_id: number;
+  chat_id: number;
+  content: string;
+  time: string;
+  type: 'message';
+  is_read: boolean;
 }
 
 interface PingMessage {
-    type: 'ping';
+  type: 'ping';
 }
 
 interface PongMessage {
-    type: 'pong';
+  type: 'pong';
 }
 
 interface GetOldMessage {
-    type: 'get old';
-    content: string;
+  type: 'get old';
+  content: string;
 }
 
 interface TextMessage {
-    type: 'message';
-    content: string;
+  type: 'message';
+  content: string;
 }
 
 type WebSocketData = WebSocketMessage | WebSocketMessage[] | PingMessage | PongMessage | GetOldMessage | TextMessage;
@@ -36,6 +36,24 @@ export class WebSocketService {
   private listeners: ((data: WebSocketData) => void)[] = [];
 
   private pingInterval: NodeJS.Timeout | null = null;
+
+  getOldMessages(offset: number) {
+    if (!this.socket) {
+      // eslint-disable-next-line no-console
+      console.warn('WebSocket not initialized');
+      return;
+    }
+
+    if (this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({
+        type: 'get old',
+        content: String(offset),
+      } as GetOldMessage));
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('WebSocket not ready for sending. State:', this.socket.readyState);
+    }
+  }
 
   connect(chatId: number, token: string) {
     const userId = store.getState().user?.id;
@@ -51,10 +69,7 @@ export class WebSocketService {
 
     this.socket.addEventListener('open', () => {
       this.startPing();
-      this.socket?.send(JSON.stringify({
-        type: 'get old',
-        content: '0',
-      } as GetOldMessage));
+      this.getOldMessages(0);
     });
 
     this.socket.addEventListener('message', (event) => {
