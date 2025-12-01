@@ -3,3 +3,4 @@
 /node_modules
 vite.config.ts
 /src/styles
+/src/**/*.spec.ts
