@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🚀 Running pre-commit checks..."
+
+echo "📝 Running ESLint..."
+npm run lint:eslint -- --fix || {
+    echo "❌ ESLint failed"
+    exit 1
+}
+
+echo "🎨 Running Stylelint..."
+npm run lint:stylelint -- --fix || {
+    echo "❌ Stylelint failed"
+    exit 1
+}
+
+echo "🧪 Running tests..."
+npm test || {
+    echo "❌ Tests failed"
+    exit 1
+}
+
+echo "✅ All checks passed!"

@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-enum HTTPMethods {
+export enum HTTPMethods {
   GET = 'GET',
   PUT = 'PUT',
   POST = 'POST',
@@ -16,7 +16,7 @@ interface HTTPOptions {
   tries?: number;
 }
 
-function queryStringify(data: HTTPData | undefined | null): string {
+export function queryStringify(data: HTTPData | undefined | null): string {
   if (!data || typeof data !== 'object' || data instanceof FormData) return '';
 
   const entries = Object.entries(data);

@@ -332,7 +332,7 @@ export default class ChatPage extends Block {
         attributes: { class: 'message-area' },
         messageList: this.getMessageItems(),
         showTrigger: this.showTrigger,
-        loadMoreButton: this.loadMoreButton, // передаем кнопку
+        loadMoreButton: this.loadMoreButton,
       }),
     });
   }
