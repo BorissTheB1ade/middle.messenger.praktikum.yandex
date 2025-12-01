@@ -1,0 +1,68 @@
+import template from './userSearch.hbs?raw';
+import Block from '../../services/Block';
+import ChatController from '../../utils/Controllers/ChatController';
+
+interface UserSearchProps {
+    attributes?: Record<string, string>;
+    chatId: number;
+    mode: 'add' | 'remove';
+    onClose: () => void;
+}
+
+export default class UserSearch extends Block {
+  private props: UserSearchProps;
+
+  constructor(props: UserSearchProps, tagName: string = 'div') {
+    super(tagName, {
+      ...props,
+      attributes: {
+        class: 'search-user-modal',
+        ...props.attributes,
+      },
+      events: {
+        click: (event: Event) => {
+          const target = event.target as HTMLElement;
+          if (target.classList.contains('modal-overlay') || target.classList.contains('close-btn')) {
+            props.onClose();
+          }
+        },
+        submit: (event: Event) => {
+          event.preventDefault();
+          const target = event.target as HTMLFormElement;
+          const loginInput = target.querySelector('input[name="login"]') as HTMLInputElement;
+
+          if (loginInput && loginInput.value.trim()) {
+            this.searchUser(loginInput.value.trim()).catch((error) => {
+              // eslint-disable-next-line no-alert
+              alert(`Ошибка поиска: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+            });
+          }
+        },
+      },
+    });
+
+    this.props = props;
+  }
+
+  private async searchUser(login: string): Promise<void> {
+    try {
+      const user = await ChatController.searchUserByLogin(login);
+      if (user) {
+        await ChatController.addUserToChat(this.props.chatId, user.id);
+        // eslint-disable-next-line no-alert
+        alert('Пользователь добавлен в чат');
+        this.props.onClose();
+      } else {
+        // eslint-disable-next-line no-alert
+        alert('Пользователь не найден');
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-alert
+      alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    }
+  }
+
+  render(): DocumentFragment {
+    return this.compile(template, this._props);
+  }
+}

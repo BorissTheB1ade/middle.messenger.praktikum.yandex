@@ -1,15 +1,22 @@
+<header class="header-area">
+    {{{logoutButton}}}
+</header>
 <div class="chat-container">
     <div class="chat-list-container">
         <div class="go-to-profile">
-            <span>{{goToProfileText}}</span>
+            {{{goToProfileLink}}}
             <img alt="goToProfileIcon" src="icons/caret_right.svg"/>
         </div>
         {{{chatSearch}}}
         {{{chatList}}}
     </div>
     <div class="chat-area-container">
+        <div class="message-area-and-header">
         {{{chatHeader}}}
         {{{messageArea}}}
-        {{{messageInput}}}
+        </div>
+        <div class="message-input-area">
+            {{{messageInput}}}
+        </div>
     </div>
 </div>
